@@ -68,7 +68,25 @@ async function run() {
             res.send(result);
         })
 
+        app.put('/food/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updatedFood = req.body;
+            const foodItems = {
+                $set: {
+                    imageUrl: updatedFood.imageUrl,
+                    foodName: updatedFood.foodName,
+                    foodQuantity: updatedFood.foodQuantity,
+                    pickupLocation: updatedFood.pickupLocation,
+                    expiredDateTime: updatedFood.expiredDateTime,
+                    additionalNotes: updatedFood.additionalNotes,
 
+                }
+            }
+            const result = await ecoFoodCollection.updateOne(filter, foodItems, options);
+            res.send(result);
+        })
 
 
 
