@@ -53,7 +53,11 @@ async function run() {
         })
 
 
-
+        app.get('/ManageMyFoods/:email', async (req, res) => {
+            console.log(req.params.email);
+            const result = await ecoFoodCollection.find({ email: req.params.email }).toArray();
+            res.send(result)
+        }) 
 
 
 
