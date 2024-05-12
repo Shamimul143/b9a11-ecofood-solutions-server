@@ -30,6 +30,7 @@ async function run() {
         // Send a ping to confirm a successful connection
 
         const ecoFoodCollection = client.db('ecoFooddb').collection('ecoFooddb');
+        const ecoFoodCollectionRequest = client.db('ecoFooddb').collection('ecoFoodrequest');
 
         app.get('/food', async (req, res) => {
             const cursor = ecoFoodCollection.find();
@@ -44,6 +45,8 @@ async function run() {
             const result = await ecoFoodCollection.insertOne(addedFood);
             res.send(result);
         })
+
+  
 
         app.get('/food/:id', async (req, res) => {
             const id = req.params.id;
@@ -89,7 +92,13 @@ async function run() {
         })
 
 
-
+      // food request section
+      app.post('/foodrequest', async (req, res) => {
+        const requestedFood = req.body;
+        console.log(requestedFood);
+        const result = await ecoFoodCollectionRequest.insertOne(requestedFood);
+        res.send(result);
+    })
 
 
 
