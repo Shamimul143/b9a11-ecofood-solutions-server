@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const cors = require('cors');
 const jwt = require('jsonwebtoken')
-const cookieParser=require('cookie-parser')
+const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
@@ -15,7 +15,15 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser())
 
+const verifyToken =async(req,res,next)=>{
+const token =req.cookies?.token;
+console.log('fshsfg', token);
+if(!token){
+    return res.status(401).send({message: 'not authorized'})
+}
 
+    next()
+}
 
 
 const uri = `mongodb+srv://${process.env.USER_ID}:${process.env.PASS_KEY}@cluster0.tgeue7q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -57,7 +65,7 @@ async function run() {
 
         // server related api
         app.get('/food', async (req, res) => {
-            console.log('token',req.cookies.token);
+            console.log('token',req.cookies);
             const sort = req.query.sort
             let options = {}
             if (sort) options = { sort: { expiredDateTime: sort === 'asc' ? 1 : -1 } }
