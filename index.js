@@ -1,13 +1,19 @@
 const express = require('express')
 const app = express()
 const cors = require('cors');
+const jwt = require('jsonwebtoken')
+const cookieParser=require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 
 
-app.use(cors());
+app.use(cors({
+    origin:['http://localhost:5173'],
+    credentials:true
+}));
 app.use(express.json());
+app.use(cookieParser())
 
 
 
@@ -32,8 +38,32 @@ async function run() {
         const ecoFoodCollection = client.db('ecoFooddb').collection('ecoFooddb');
         const ecoFoodCollectionRequest = client.db('ecoFooddb').collection('ecoFoodrequest');
 
+        // auth related api 
+        app.post('/jwt', async (req, res) => {
+
+            const user = req.body;
+            console.log(user);
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN, { expiresIn: "1d" })
+            res
+            .cookie('token', token, {
+                httpOnly:true,
+                secure:false,
+                sameSite:'none'
+            })
+            .send({success:true})
+        })
+
+
+
+        // server related api
         app.get('/food', async (req, res) => {
-            const cursor = ecoFoodCollection.find();
+            console.log('token',req.cookies.token);
+            const sort = req.query.sort
+            let options = {}
+            if (sort) options = { sort: { expiredDateTime: sort === 'asc' ? 1 : -1 } }
+
+            const cursor = ecoFoodCollection.find(options);
+
             const result = await cursor.toArray();
             res.send(result);
         })
@@ -46,7 +76,7 @@ async function run() {
             res.send(result);
         })
 
-  
+
 
         app.get('/food/:id', async (req, res) => {
             const id = req.params.id;
@@ -58,9 +88,10 @@ async function run() {
 
         app.get('/ManageMyFoods/:email', async (req, res) => {
             console.log(req.params.email);
+            
             const result = await ecoFoodCollection.find({ email: req.params.email }).toArray();
             res.send(result)
-        }) 
+        })
 
 
 
@@ -92,15 +123,19 @@ async function run() {
         })
 
 
-      // food request section
-      app.post('/foodrequest', async (req, res) => {
-        const requestedFood = req.body;
-        console.log(requestedFood);
-        const result = await ecoFoodCollectionRequest.insertOne(requestedFood);
-        res.send(result);
-    })
+        // food request section
+        app.post('/foodrequest', async (req, res) => {
+            const requestedFood = req.body;
+            console.log(requestedFood);
+            const result = await ecoFoodCollectionRequest.insertOne(requestedFood);
+            res.send(result);
+        })
 
-
+        app.get('/foodrequest', async (req, res) => {
+            const cursor = ecoFoodCollectionRequest.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
 
 
 
